@@ -1,4 +1,4 @@
-package handler
+package service
 
 import (
 	"strconv"
@@ -25,7 +25,7 @@ func (s *Simple) MiddlewareChain() []goeasy.HttpMiddleware {
 }
 
 func (s *Simple) OnHttpRequest(flow goeasy.Flow, req *fasthttp.Request) interface{} {
-	sid := flow.Context().Value("id").(string)
+	sid := flow.Value("id").(string)
 
 	id, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {

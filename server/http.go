@@ -54,7 +54,7 @@ func New(cfg Config) *Server {
 
 func (s *Server) Register(method, path string, h goeasy.HttpHandler) {
 	s.handlers = append(s.handlers, handlerInfo{
-		typ: reflect.TypeOf(h),
+		typ: reflect.TypeOf(h).Elem(),
 		regFunc: func() {
 			h.OnInit(h)
 

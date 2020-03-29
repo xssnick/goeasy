@@ -6,7 +6,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/xssnick/goeasy/example/handler"
+	"github.com/xssnick/goeasy/example/service"
 	"github.com/xssnick/goeasy/server"
 )
 
@@ -18,8 +18,8 @@ func main() {
 		WriteTimeout:    10 * time.Second,
 	})
 
-	svc := handler.Service{Database: "SQL"}
-	srv.MustRegister(fasthttp.MethodGet, "/:id", &handler.Simple{Service: svc})
+	svc := service.Service{Database: "SQL"}
+	srv.Register(fasthttp.MethodGet, "/:id", &service.Simple{Service: svc})
 
 	log.Println(srv.Listen(":7777"))
 }
