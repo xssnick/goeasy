@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"log"
 	"reflect"
 	"runtime/debug"
@@ -18,9 +19,12 @@ type handlerInfo struct {
 	regFunc func()
 }
 
+type FlowMaker func(ctx context.Context) goeasy.Flow
+
 type Server struct {
 	r        *fasthttprouter.Router
 	srv      fasthttp.Server
+	flowMaker FlowMaker
 	handlers []handlerInfo
 }
 
@@ -34,6 +38,7 @@ type Config struct {
 func New(cfg Config) *Server {
 	s := &Server{
 		r: fasthttprouter.New(),
+		flowMaker: goeasy.NewBasicFlow,
 	}
 
 	s.srv = fasthttp.Server{
@@ -47,7 +52,7 @@ func New(cfg Config) *Server {
 	return s
 }
 
-func (s *Server) MustRegister(method, path string, h goeasy.HttpHandler) {
+func (s *Server) Register(method, path string, h goeasy.HttpHandler) {
 	s.handlers = append(s.handlers, handlerInfo{
 		typ: reflect.TypeOf(h),
 		regFunc: func() {
@@ -73,6 +78,10 @@ func (s *Server) MustRegister(method, path string, h goeasy.HttpHandler) {
 			}
 		},
 	})
+}
+
+func (s *Server) SetCustomFlowMaker(fm FlowMaker) {
+	s.flowMaker = fm
 }
 
 func (s *Server) Listen(addr string) error {
@@ -102,13 +111,13 @@ func (s *Server) handler(h goeasy.HttpHandler) func(ctx *fasthttp.RequestCtx) {
 	return func(ctx *fasthttp.RequestCtx) {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Println("recovered handler:", r)
+				log.Println("recovered goeasy handler:", r)
 				debug.PrintStack()
 				ctx.SetStatusCode(fasthttp.StatusInternalServerError)
 			}
 		}()
 
-		flow := goeasy.NewBasicFlow(ctx)
+		flow := s.flowMaker(ctx)
 
 		for _, p := range preproc {
 			if !process(flow, ctx, p) {

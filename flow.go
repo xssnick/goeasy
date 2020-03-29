@@ -21,6 +21,6 @@ func (f *BasicFlow) UpdateContext(ctx context.Context) {
 	f.ctx = ctx
 }
 
-func NewBasicFlow(ctx context.Context) *BasicFlow {
+func NewBasicFlow(ctx context.Context) Flow {
 	return &BasicFlow{ctx: ctx}
 }
